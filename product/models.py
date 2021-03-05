@@ -13,42 +13,26 @@ class Category(models.Model):
     class Meta:
         db_table = 'categories'
 
-class PreperationKit(models.Model):
-    name = models.CharField(max_length=45)
-
-    class Meta:
-        db_table= 'preperation_kits'
 
 class Gender(models.Model):
     name = models.CharField(max_length=45)
-
+    product =models.ForeignKey('product', on_delete=models.SET_NULL, null=True)
+    
     class Meta:
         db_table= 'genders'
 
-class UserLevel(models.Model):
+class ClassLevel(models.Model):
     name = models.CharField(max_length=45)
 
     class Meta:
-        db_table = 'user_levels'
+        db_table = 'class_levels'
 
 class ProductImage(models.Model):
     name = models.URLField(max_length=2000)
+    product = models.ForeignKey('product', on_delete=models.SET_NULL, null=True)
 
     class Meta:
         db_table = 'product_images'
-
-class PromotionCoupon(models.Model):
-    code           = models.IntegerField()
-    discount_price = models.DecimalField(max_digits=7, decimal_places=2)
-
-    class Meta:
-        db_table = 'promotion_coupons'
-
-class ClassSatisfaction(models.Model):
-    name = models.IntegerField()
-
-    class Meta:
-        db_table = 'class_satisfactions'
 
 class Age(models.Model):
     group = models.CharField(max_length=45)
@@ -62,21 +46,15 @@ class Product(models.Model):
     gift               = models.BooleanField(default=True)
     available_now      = models.BooleanField(default=True)
     introduction       = models.TextField()
-    user_contents      = models.BooleanField(default=True)
     thumbnail_url      = models.URLField(max_length=2000)
+    satisfaction       = models.IntegerField()
+    description        = models.TextField()
     created_at         = models.DateTimeField(auto_now_add=True)
-    updated_at        = models.DateTimeField(auto_now=True)
-    closing_date       = models.DateTimeField()
+    updated_at         = models.DateTimeField(auto_now=True)
     category           = models.ForeignKey('category', on_delete=models.CASCADE)
     user               = models.ForeignKey('user.User', on_delete=models.CASCADE)
-    preperation_kit    = models.ForeignKey('PreperationKit', on_delete=models.SET_NULL,null=True)
-    user_level         = models.ForeignKey('UserLevel', on_delete=models.SET_NULL, null=True)
-    class_satisfaction = models.ForeignKey('ClassSatisfaction', on_delete=models.SET_NULL,null=True)
-    product_images     = models.ForeignKey('ProductImage',on_delete=models.SET_NULL, null=True)
-    promotion_coupon  = models.ForeignKey('PromotionCoupon', on_delete=models.SET_NULL,null=True)
-    gender             = models.ForeignKey('Gender', on_delete=models.SET_NULL, null=True)
+    class_level        = models.ForeignKey('ClassLevel', on_delete=models.SET_NULL, null=True)
     age                = models.ManyToManyField('Age', through='ProductAge', related_name='age')
-    description        = models.TextField()
 
 
     class Meta:
