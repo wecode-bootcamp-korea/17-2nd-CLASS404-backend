@@ -2,6 +2,7 @@ import json
 import bcrypt
 import jwt
 import requests
+import re
 
 from django.views     import View
 from django.http      import JsonResponse
@@ -14,6 +15,41 @@ from product.models import Brand, Category, Product, ProductUserlike, Review
 
 USER_TIER_DEFAULT_ID = 1
 USER_TYPE_DEFAULT_ID = 1
+
+class SignupView(View):
+    def post(self, request):
+        try:
+            data     = json.loads(request.body)
+            email    = data['email']
+            password = data['password']                                
+            name     = data['name']
+            password_regex = re.compile("(?=.*\d)(?=.*[a-z]).{8,32}$", re.IGNORECASE)
+            if not password_regex.match(password):
+                return JsonResponse({'message' : 'INVALID_PASSWORD'}, status = 400)
+
+            email_regex = re.compile("^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$")
+            if not email_regex.match(email):
+                return JsonResponse({'message' : 'INVALID_EMAIL'}, status = 400)
+
+            if not name:
+                return JsonResponse({'message' : 'INVALID_NAME'}, status = 400)
+
+            if User.objects.filter(email=email).exists():
+                return JsonResponse({'message' : 'DUPLICATED_EMAIL'}, status = 400)
+
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+            User.objects.create(
+                email        = email,
+                password     = hashed_password,
+                name         = name,
+                tier_id      = USER_TIER_DEFALUT_ID,
+                user_type_id = USER_TYPE_DEFALUT_ID
+            )
+            return JsonResponse({'message' : 'SUCCESS'}, status = 201)
+                
+        except KeyError:
+            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
 
 class KakaoLoginView(View):
     def get(self, request):
@@ -55,7 +91,6 @@ class KakaoLoginView(View):
                 'user_name': name,
                 'message': "SUCCESS"
                 }, status=201)
-
         except KeyError:
             return JsonResponse({'message':'INVALID_KEYS'}, status = 400)
 
