@@ -30,6 +30,65 @@ TestCase.maxDiff = None
 USER_TIER_DEFAULT_ID = 1
 USER_TYPE_DEFAULT_ID = 1
 
+class SignupTest(TestCase):
+    def setUp(self):
+        UserTier.objects.create(id=1, name='브론즈')
+        UserType.objects.create(id=1, name='일반')
+        User.objects.create(
+            email        = 'dlwnsgk791@naver.com',
+            password     = 'dlwnsgk1234',                              
+            name         = '이준하',
+            tier_id      = USER_TIER_DEFALUT_ID,
+            user_type_id = USER_TYPE_DEFALUT_ID
+        )
+
+    def tearDown(self):
+        User.objects.all().delete()
+        UserTier.objects.all().delete()
+        UserType.objects.all().delete()
+        
+    def test_signup_post_success(self):
+        client = Client()
+        user = {
+            'name'     : '이준하',
+            'password' : 'dlwnsgk1234',
+            'email'    : 'dlwnsgk7910@naver.com'
+        }
+        response = client.post('/user/signup', json.dumps(user), content_type='application/json')
+        
+        self.assertEqual(response.status_code, 201)
+
+    def test_signup_post_duplicated_name(self):
+        client = Client()
+        user = {
+            'name'     : '이준하',
+            'email'    : 'dlwnsgk791@naver.com',
+            'password' : 'dlwnsgk1234'
+        }
+        response = client.post('/user/signup', json.dumps(user), content_type='application/json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(),
+        {
+            'message' : 'DUPLICATED_EMAIL'
+        }  
+        )
+
+    def test_signup_post_invalid_keys(self):
+        client = Client()
+        user = {
+            'name'      : '이준하',
+            'email'     : 'dlwnsgk7919@naver.com',
+        }
+        response = client.post('/user/signup', json.dumps(user), content_type='application/json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(),
+            {
+                'message' : 'KEY_ERROR'
+            }
+        )
+
 class KakaoLoginTest(TestCase):
     def setUp(self):
         UserTier.objects.create(id=1, name="브론즈")
@@ -315,10 +374,3 @@ class MyPageTest(TestCase):
         client   = Client()
         response = client.get('/a', **{"HTTP_AUTHORIZATION":self.access_token,"content_type" : "application/json"})
         self.assertEqual(response.status_code, 404)
-
-    
-    
-
-    
-
-    
