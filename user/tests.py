@@ -374,3 +374,62 @@ class MyPageTest(TestCase):
         client   = Client()
         response = client.get('/a', **{"HTTP_AUTHORIZATION":self.access_token,"content_type" : "application/json"})
         self.assertEqual(response.status_code, 404)
+
+class SigninTest(TestCase):
+    def setUp(self):
+        UserTier.objects.create(id=1, name='브론즈')
+        UserType.objects.create(id=1, name='일반')
+        User.objects.create(
+            email        = 'dlwnsgk791@naver.com',
+            password     = '$2b$12$bgeUQKkwdC.ijKaf6NIty.XU.N1Qz41Zng4O8xOWMdbtsr6tWMDRK',
+            name         = '이준하',
+            tier_id      = USER_TIER_DEFAULT_ID,
+            user_type_id = USER_TYPE_DEFAULT_ID
+        )
+
+    def tearDown(self):
+        User.objects.all().delete()
+        UserTier.objects.all().delete()
+        UserType.objects.all().delete()
+
+    def test_signin_post_success(self):
+        client = Client()
+        user = {
+            'name'     : '이준하',
+            'password' : 'dlwnsgk1234',
+            'email'    : 'dlwnsgk791@naver.com'
+        }
+        response = client.post('/user/signin', json.dumps(user), content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+
+    def test_signup_post_existing_name(self):
+        client = Client()
+        user = {
+            'name'     : '이준하',
+            'email'    : 'dlwnsgk7910@naver.com',
+            'password' : 'dlwnsgk1234'
+        }
+        response = client.post('/user/signin', json.dumps(user), content_type='application/json')
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(),
+        {
+            'message' : 'INVALID_USER'
+        }  
+        )
+
+    def test_signup_post_invalid_keys(self):
+        client = Client()
+        user = {
+            'name'      : '이준하',
+            'email'     : 'dlwnsgk7919@naver.com',
+        }
+        response = client.post('/user/signin', json.dumps(user), content_type='application/json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(),
+            {
+                'message' : 'KEY_ERROR'
+            }
+        )

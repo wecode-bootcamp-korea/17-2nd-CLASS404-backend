@@ -123,3 +123,20 @@ class MyPageView(View):
         } for product in products]
         return JsonResponse({"product": product_info_list}, status=200)
 
+class SigninView(View):
+    def post(self, request):
+        try: 
+            data     = json.loads(request.body)
+            email    = data['email']
+            password = data['password']
+
+            if not User.objects.filter(email = email).exists():
+                return JsonResponse({'message' : 'INVALID_USER'}, status = 401)
+
+            user = User.objects.get(email=email)
+            if bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+                token = jwt.encode({'user_id': user.id}, SECRET_KEY, ALGORITHM)
+                return JsonResponse({'message': 'SUCCESS', 'access_token': token}, status=200)
+            return JsonResponse({'message': 'INVALID_PASSWORD'}, status=401)
+        except KeyError:
+            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
