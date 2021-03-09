@@ -31,7 +31,7 @@ TestCase.maxDiff = None
 USER_TIER_DEFAULT_ID = 1
 USER_TYPE_DEFAULT_ID = 1
 
-class ProductListTest(TestCase):
+class ProductDetailTest(TestCase):
     def setUp(self):
         Brand.objects.create(id=1, name="취미")
         Category.objects.create(id=1, name="미술", brand_id=1)
@@ -84,6 +84,11 @@ class ProductListTest(TestCase):
 
         ProductUserlike.objects.create(id=1, product_id=2, user_id=1)
 
+        Review.objects.create(id=1, user_id=1, product_id=1, description="this is 1st test description.")
+        
+        Review.objects.create(id=2, user_id=2, product_id=1, description="this is 2nd test description")
+
+
         self.access_token = jwt.encode({'user_id' : User.objects.get(id=1).id},\
                 SECRET_KEY, ALGORITHM)
 
@@ -116,6 +121,24 @@ class ProductListTest(TestCase):
     def test_productview_get_not_found(self):
         client   = Client()
         response = client.get('/products')
+        Review.objects.all().delete()
+
+    def test_productdetailview_user_get_success(self):
+        client   = Client()
+        response = client.get("/product/1", **{"HTTP_AUTHORIZATION":self.access_token,"content_type" : "application/json"})
+        print(response.json())
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'product': [{'id': 1, 'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', 'likeCount': 0, 'like': False, 'category': '미술', 'creatorName': '이동근', 'className': '아따맘마', 'price': '50000.00', 'gift': False, 'description': '', 'introduction': '안녕하세요', 'reviews': [{'id': 1, 'author': '이동근', 'text': 'this is 1st test description.'}, {'id': 2, 'author': '데이비드', 'text': 'this is 2nd test description'}]}]})
+
+    def test_productdetailview_non_user_get_success(self):
+        client = Client()
+        response = client.get("/product/1")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'product': [{'id': 2, 'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', 'likeCount': 1, 'like': False, 'category': '음악', 'userName': '데이비드', 'title': '원피스', 'price': '50000.00', 'gift': False},'review':[{"id":1, "author":'이동근', "text":           "this is 1st test description"}], {'id': 1, 'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', 'likeCount': 0, 'like': False, 'category': '미술', 'userName': '이동근', 'title': '아따맘마', 'price': '50000.00', 'gift': False, 'review':[{"id":1, "author":'이동근', "text":           "this is 1st test description"}]}]})
+    
+    def test_productview_get_not_found(self):
+        client   = Client()
+        response = client.get('/product/productdetail')
         self.assertEqual(response.status_code, 404)
     
 
