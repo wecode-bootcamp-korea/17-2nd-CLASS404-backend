@@ -3,11 +3,14 @@ import bcrypt
 import jwt
 import requests
 
-from django.views import View
-from django.http  import JsonResponse
+from django.views     import View
+from django.http      import JsonResponse
+from django.db.models import Q
 
-from my_settings  import SECRET_KEY, ALGORITHM
-from .models      import User, UserType, UserTier
+from my_settings    import SECRET_KEY, ALGORITHM
+from user.utils     import login_decorator
+from .models        import User, UserType, UserTier
+from product.models import Brand, Category, Product, ProductUserlike, Review
 
 USER_TIER_DEFAULT_ID = 1
 USER_TYPE_DEFAULT_ID = 1
@@ -54,4 +57,33 @@ class KakaoLoginView(View):
                 }, status=201)
 
         except KeyError:
-            return JsonResponse({'message':'INVALID_KEYS'}, status = 400)     
+            return JsonResponse({'message':'INVALID_KEYS'}, status = 400)
+
+class MyPageView(View):
+    @login_decorator
+    def get(self, request):
+        user = request.user
+
+        class_type = request.GET.get('class', 'like')
+        class_dict = {
+            'like'  : Q(productuserlike__user=user),
+            'buy'   : Q(order__user=user),
+            'create': Q(user=user),
+        }
+
+        q = Q(class_dict[class_type])
+
+        products = Product.objects.filter(q).order_by('-created_at')
+        
+        product_info_list = [{
+            "id"          : product.id,
+            "thumbnail"   : product.thumbnail_url,
+            "likeCount"   : ProductUserlike.objects.filter(product_id=product.id).count(), 
+            "like"        : ProductUserlike.objects.filter(user_id=user.id, product_id=product.id).exists() if user else False,
+            "category"    : product.category.name,
+            "userName"    : product.user.name,
+            "title"       : product.title,
+            "price"       : product.price,
+	        "gift"        : product.gift,
+        } for product in products]
+        return JsonResponse({"product": product_info_list}, status=200)

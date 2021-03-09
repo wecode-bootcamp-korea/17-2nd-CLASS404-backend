@@ -6,15 +6,7 @@ from my_settings    import SECRET_KEY, ALGORITHM
 
 from user.models    import User
 
-<<<<<<< HEAD
 def login_check(func):
-=======
-<<<<<<< HEAD
-def login_check(func):
-=======
-def non_user_accept_decorator(func):
->>>>>>> 00dd63f (UPDATE: productdetail View, test complete.)
->>>>>>> 1f08d08 (UPDATE: productdetail View, test complete.)
     def wrapper(self, request, *args, **kwargs):
         try:
             access_token    = request.headers.get('Authorization', None)
