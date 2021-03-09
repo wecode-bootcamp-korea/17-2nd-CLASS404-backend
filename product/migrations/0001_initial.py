@@ -1,3 +1,4 @@
+
 from django.db import migrations, models
 import django.db.models.deletion
 
@@ -62,8 +63,8 @@ class Migration(migrations.Migration):
                 ('available_now', models.BooleanField(default=True)),
                 ('introduction', models.TextField()),
                 ('thumbnail_url', models.URLField(max_length=2000)),
-                ('satisfaction', models.IntegerField()),
                 ('description', models.TextField()),
+                ('satisfaction', models.IntegerField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
             ],

@@ -122,3 +122,4 @@ class MyPageView(View):
 	        "gift"        : product.gift,
         } for product in products]
         return JsonResponse({"product": product_info_list}, status=200)
+

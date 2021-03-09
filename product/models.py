@@ -47,6 +47,7 @@ class Product(models.Model):
     available_now      = models.BooleanField(default=True)
     introduction       = models.TextField()
     thumbnail_url      = models.URLField(max_length=2000)
+    description        = models.TextField()
     satisfaction       = models.IntegerField()
     description        = models.TextField()
     created_at         = models.DateTimeField(auto_now_add=True)

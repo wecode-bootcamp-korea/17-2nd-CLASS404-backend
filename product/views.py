@@ -6,16 +6,83 @@ from django.views           import View
 from django.db.models       import Q, Count
 
 from user.utils     import login_decorator, login_check
-from .models import Brand, Category, Product, ProductUserlike, Review
+from .models        import (
+    Brand,
+    Category, 
+    Product, 
+    ProductUserlike, 
+    Review, 
+    ProductImage,
+    ClassLevel,
+    Gender,
+    Age)
+from user.models   import User
 
-class ProductListView(View):
+class ProductView(View):
+    @login_decorator
+    def post(self, request):
+        try:
+            data              = json.loads(request.POST['body'])
+            login_user        = request.user
+
+            brand             = data['brand']
+            category          = data['category']
+            title             = data['title']
+            price             = data['price']
+            introduction      = data['detail_category']
+            available_now     = data.get('now', False)
+            thumbnail_url     = data['thumbnail']
+            age               = data['age']
+            class_level       = data['level']
+            gender            = data['gender']
+            product_image     = data['image']
+            description       = data['description']
+            gift              = data.get('gift', False)
+            satisfaction      = data.get('satisfaction', 90)
+#
+            brand       =  Brand.objects.filter(id=brand)
+            category    = Category.objects.filter(id=category)
+            class_level = ClassLevel.objects.filter(name=class_level).first()
+            login_user  = User.objects.get(id=login_user)
+
+            product = Product.objects.create(
+                    title             = title,
+                    price             = price,
+                    gift              = gift,
+                    available_now     = available_now,
+                    introduction      = introduction,
+                    thumbnail_url     = thumbnail_url,
+                    user              = login_user,
+                    category          = category.first(),
+                    satisfaction      = satisfaction,
+                    class_level       = class_level
+                    )
+        
+            if age:
+                product.age.add(Age.objects.get(group=age))
+        
+            Gender.objects.create(
+                    name = gender,
+                    product= product
+                    )
+        
+            ProductImage.objects.create(
+                    name=product_image,
+                    product = product
+                    )
+            return JsonResponse({"MESSAGE" : "SUCCESS"}, status=200)
+
+        except KeyError:
+           return JsonResponse({"MESSAGE" : "INVALID_KEY"}, status=400)
+
+
     @login_check
     def get(self, request):
-        user          = request.user
+        user          = request.user_id
 
         category_list = request.GET.getlist('category', None)
-        sort          = request.GET.get('sort', 'latestOrder')
-        
+        sort          = request.GET.get('sort', 'lastestOrder')
+            
         q = Q()
         if category_list:
             for category in category_list:
@@ -30,7 +97,7 @@ class ProductListView(View):
         if sort in sort_dict:
             products = Product.objects.filter(q)\
                     .annotate(num_reviews=Count('review')).order_by(sort_dict[sort])
-        
+
         product_info_list = [{
             "id"          : product.id,
             "thumbnail"   : product.thumbnail_url,
@@ -44,8 +111,9 @@ class ProductListView(View):
         } for product in products]
         return JsonResponse({"product": product_info_list}, status=200)
                 
+
 class ProductDetailView(View):
-    @non_user_accept_decorator
+    #@non_user_accept_decorator
     def get(self, request, product_id):
         product = Product.objects.get(id=product_id)
         user = request.user
@@ -71,4 +139,4 @@ class ProductDetailView(View):
 
         return JsonResponse({"product": product_info_list}, status=200)
 
-
+            
