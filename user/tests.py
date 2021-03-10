@@ -38,8 +38,8 @@ class SignupTest(TestCase):
             email        = 'dlwnsgk791@naver.com',
             password     = 'dlwnsgk1234',                              
             name         = '이준하',
-            tier_id      = USER_TIER_DEFALUT_ID,
-            user_type_id = USER_TYPE_DEFALUT_ID
+            tier_id      = USER_TIER_DEFAULT_ID,
+            user_type_id = USER_TYPE_DEFAULT_ID
         )
 
     def tearDown(self):
@@ -243,6 +243,30 @@ class MyPageTest(TestCase):
                     category_id   = 1,
                     satisfaction  = False,
                     )
+        Product.objects.create(
+                    id            = 5,
+                    title         = "안녕하세요",
+                    price         = 50000.00,
+                    gift          = True,
+                    available_now = False,
+                    introduction  = "굿뜨",
+                    thumbnail_url = "https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+                    user_id       = 1,
+                    category_id   = 1,
+                    satisfaction  = False,
+                    )
+        Product.objects.create(
+                    id            = 6,
+                    title         = "좋은 강의",
+                    price         = 50000.00,
+                    gift          = True,
+                    available_now = True,
+                    introduction  = "아주 좋은 강의입니다",
+                    thumbnail_url = "https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+                    user_id       = 1,
+                    category_id   = 1,
+                    satisfaction  = True,
+                    )
 
         ProductUserlike.objects.create(id=1, product_id=2, user_id=1)
 
@@ -293,7 +317,10 @@ class MyPageTest(TestCase):
                     'price'     : '50000.00',
                     'gift'      : False
                 }
-            ]
+            ],
+            'userEmail': 'dlehdrms@gamil.com',
+            'userName': '이동근',
+            'userProfile': 'https://media.vlpt.us/images/c_hyun403/post/7b35d3bb-44be-41bf-8192-0ccc426b465c/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202021-02-26%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%2012.53.02.png'
         })
     
     def test_mypage_create_get_success(self):
@@ -303,6 +330,28 @@ class MyPageTest(TestCase):
         self.assertEqual(response.json(), {
             'product': 
             [
+                {
+                    'id': 6,
+                    'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+                    'likeCount': 0,
+                    'like': False,
+                    'category': '미술',
+                    'userName': '이동근',
+                    'title': '좋은 강의',
+                    'price': '50000.00',
+                    'gift': True
+                },
+                {
+                    'id': 5,
+                    'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+                    'likeCount': 0,
+                    'like': False,
+                    'category': '미술',
+                    'userName': '이동근',
+                    'title': '안녕하세요',
+                    'price': '50000.00',
+                    'gift': True
+                },
                 {
                     'id': 3,
                     'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
@@ -325,7 +374,10 @@ class MyPageTest(TestCase):
                     'price': '50000.00',
                     'gift': False
                 }
-            ]
+            ],
+            'userEmail': 'dlehdrms@gamil.com',
+            'userName': '이동근',
+            'userProfile': 'https://media.vlpt.us/images/c_hyun403/post/7b35d3bb-44be-41bf-8192-0ccc426b465c/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202021-02-26%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%2012.53.02.png'
         })
     
     def test_mypage_buy_get_success(self):
@@ -346,7 +398,10 @@ class MyPageTest(TestCase):
                     'price': '50000.00',
                     'gift': True
                 }
-            ]
+            ],
+            'userEmail': 'dlehdrms@gamil.com',
+            'userName': '이동근',
+            'userProfile': 'https://media.vlpt.us/images/c_hyun403/post/7b35d3bb-44be-41bf-8192-0ccc426b465c/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202021-02-26%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%2012.53.02.png'
         })
 
     def test_mypage_default_get_success(self):
@@ -354,20 +409,75 @@ class MyPageTest(TestCase):
         response = client.get("/user/mypage", **{"HTTP_AUTHORIZATION":self.access_token,"content_type" : "application/json"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {
-            'product':
+            'productLike': 
             [
                 {
-                    'id'        : 2,
-                    'thumbnail' : 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-                    'likeCount' : 1,
-                    'like'      : True,
-                    'category'  : '음악',
-                    'userName'  : '데이비드',
-                    'title'     : '원피스',
-                    'price'     : '50000.00',
-                    'gift'      : False
+                    'id': 2,
+                    'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+                    'likeCount': 1,
+                    'like': True,
+                    'category': '음악',
+                    'userName': '데이비드',
+                    'title': '원피스',
+                    'price': '50000.00',
+                    'gift': False
                 }
-            ]
+            ],
+
+            'productBuy':
+            [
+                {
+                    'id': 4,
+                    'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+                    'likeCount': 0,
+                    'like': False,
+                    'category': '미술',
+                    'userName': '데이비드',
+                    'title': '다다다',
+                    'price': '50000.00',
+                    'gift': True
+                }
+            ],
+
+            'productCreate':
+            [
+                {
+                    'id': 6,
+                    'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+                    'likeCount': 0,
+                    'like': False,
+                    'category': '미술',
+                    'userName': '이동근',
+                    'title': '좋은 강의',
+                    'price': '50000.00',
+                    'gift': True
+                },
+                {
+                    'id': 5,
+                    'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+                    'likeCount': 0,
+                    'like': False,
+                    'category': '미술',
+                    'userName': '이동근',
+                    'title': '안녕하세요',
+                    'price': '50000.00',
+                    'gift': True
+                },
+                {
+                    'id': 3,
+                    'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+                    'likeCount': 0,
+                    'like': False,
+                    'category': '음악',
+                    'userName': '이동근',
+                    'title': '나루토',
+                    'price': '50000.00',
+                    'gift': False
+                },
+            ],
+            'userEmail': 'dlehdrms@gamil.com',
+            'userName': '이동근',
+            'userProfile': 'https://media.vlpt.us/images/c_hyun403/post/7b35d3bb-44be-41bf-8192-0ccc426b465c/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202021-02-26%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%2012.53.02.png'
         })
 
     def test_mypage_get_not_found(self):

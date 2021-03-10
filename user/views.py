@@ -15,6 +15,7 @@ from product.models import Brand, Category, Product, ProductUserlike, Review
 
 USER_TIER_DEFAULT_ID = 1
 USER_TYPE_DEFAULT_ID = 1
+MYPAGE_LIMIT         = 3
 
 class SignupView(View):
     def post(self, request):
@@ -43,13 +44,31 @@ class SignupView(View):
                 email        = email,
                 password     = hashed_password,
                 name         = name,
-                tier_id      = USER_TIER_DEFALUT_ID,
-                user_type_id = USER_TYPE_DEFALUT_ID
+                tier_id      = USER_TIER_DEFAULT_ID,
+                user_type_id = USER_TIER_DEFAULT_ID
             )
             return JsonResponse({'message' : 'SUCCESS'}, status = 201)
                 
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
+
+class SigninView(View):
+    def post(self, request):
+        try: 
+            data     = json.loads(request.body)
+            email    = data['email']
+            password = data['password']
+
+            if not User.objects.filter(email = email).exists():
+                return JsonResponse({'message' : 'INVALID_USER'}, status = 401)
+
+            user = User.objects.get(email=email)
+            if bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+                token = jwt.encode({'user_id': user.id}, SECRET_KEY, ALGORITHM)
+                return JsonResponse({'message': 'SUCCESS', 'access_token': token}, status=200)
+            return JsonResponse({'message': 'INVALID_PASSWORD'}, status=401)
+        except KeyError:
+            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
 
 class KakaoLoginView(View):
     def get(self, request):
@@ -99,44 +118,49 @@ class MyPageView(View):
     def get(self, request):
         user = request.user
 
-        class_type = request.GET.get('class', 'like')
+        class_type = request.GET.get('class', None)
         class_dict = {
-            'like'  : Q(productuserlike__user=user),
-            'buy'   : Q(order__user=user),
-            'create': Q(user=user),
+            'like'    : Q(productuserlike__user=user),
+            'buy'     : Q(order__user=user),
+            'create'  : Q(user=user),
         }
 
-        q = Q(class_dict[class_type])
+        product_info_dict = {}
 
-        products = Product.objects.filter(q).order_by('-created_at')
-        
-        product_info_list = [{
-            "id"          : product.id,
-            "thumbnail"   : product.thumbnail_url,
-            "likeCount"   : ProductUserlike.objects.filter(product_id=product.id).count(), 
-            "like"        : ProductUserlike.objects.filter(user_id=user.id, product_id=product.id).exists() if user else False,
-            "category"    : product.category.name,
-            "userName"    : product.user.name,
-            "title"       : product.title,
-            "price"       : product.price,
-	        "gift"        : product.gift,
-        } for product in products]
-        return JsonResponse({"product": product_info_list}, status=200)
+        if class_type:
+            class_dict = {
+                class_type : class_dict[class_type]
+            }
 
-class SigninView(View):
-    def post(self, request):
-        try: 
-            data     = json.loads(request.body)
-            email    = data['email']
-            password = data['password']
+        for key, value in class_dict.items():
+            products = Product.objects.filter(value).order_by('-created_at')
+            product_info_dict[key] = [{
+                "id"          : product.id,
+                "thumbnail"   : product.thumbnail_url,
+                "likeCount"   : ProductUserlike.objects.filter(product_id=product.id).count(), 
+                "like"        : ProductUserlike.objects.filter(user_id=user.id, product_id=product.id).exists() if user else False,
+                "category"    : product.category.name,
+                "userName"    : product.user.name,
+                "title"       : product.title,
+                "price"       : product.price,
+                "gift"        : product.gift,
+            } for product in products]
 
-            if not User.objects.filter(email = email).exists():
-                return JsonResponse({'message' : 'INVALID_USER'}, status = 401)
+        if not class_type:
+            return JsonResponse(
+                {
+                    "productLike"   : product_info_dict['like'][:MYPAGE_LIMIT],
+                    "productBuy"    : product_info_dict['buy'][:MYPAGE_LIMIT],
+                    "productCreate" : product_info_dict['create'][:MYPAGE_LIMIT],
+                    "userEmail"     : user.email,
+                    "userName"      : user.name,
+                    "userProfile"   : user.image_url
+                }, status=200)
 
-            user = User.objects.get(email=email)
-            if bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
-                token = jwt.encode({'user_id': user.id}, SECRET_KEY, ALGORITHM)
-                return JsonResponse({'message': 'SUCCESS', 'access_token': token}, status=200)
-            return JsonResponse({'message': 'INVALID_PASSWORD'}, status=401)
-        except KeyError:
-            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
+        return JsonResponse(
+                {
+                    "product"     : product_info_dict[class_type],
+                    "userEmail"   : user.email,
+                    "userName"    : user.name,
+                    "userProfile" : user.image_url
+                }, status=200)
