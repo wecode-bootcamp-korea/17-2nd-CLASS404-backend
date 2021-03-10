@@ -23,6 +23,38 @@ from my_settings   import s3_config
 from class404.settings  import AWS_STORAGE_BUCKET_NAME
 from class404.utils     import s3_handler
 
+class FileView(View):
+    def __init__(self):
+        self.s3_client = boto3.client(
+            's3',
+            aws_access_key_id     = s3_config['access_key_id'],
+            aws_secret_access_key = s3_config['secret_access_key']
+        )
+
+    def post(self, request):
+        file = request.FILES['filename']
+
+        self.s3_client.upload_fileobj(
+            file, 
+            s3_config['bucket_name'],
+            file.name,
+            ExtraArgs={
+                "ContentType": file.content_type
+            }
+        ) 
+        
+        file_url = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{str(file)}'
+        return JsonResponse({'file_url':file_url}, status=200)
+     
+    def delete(self, file_name):
+        self.s3.delete_object(
+            Bucket = s3_config['bucket_name'],
+            Key = file_name
+        )
+
+
+        return HttpResponse(status= 200)
+
 
 
 class ProductView(View):
@@ -30,7 +62,6 @@ class ProductView(View):
     def post(self, request):
         
         data              = request.POST
-        image             = request.FILES
         login_user        = request.user
         
         brand             = data['brand']
@@ -39,19 +70,18 @@ class ProductView(View):
         price             = data['price']
         introduction      = data['detailCategory']
         available_now     = data.get('now', False)
-        thumbnail_url     = image['thumbnail']
+        thumbnail_url     = data['thumbnail']
         age               = data['age']
         class_level       = data['level']
         gender            = data['gender']
-        product_image     = image.getlist('image')
+        product_image     = data.getlist('image')
+        print(product_image)
         description       = data['description']
         gift              = data.get('gift', False)
         satisfaction      = data.get('satisfaction', 90)
-
         brand       =  Brand.objects.filter(id=brand)
         category    = Category.objects.filter(id=category)
         class_level = ClassLevel.objects.filter(name=class_level).first()
-        thumbnail   = s3_handler(thumbnail_url)
 
         product = Product.objects.create(
                 title             = title,
@@ -59,13 +89,12 @@ class ProductView(View):
                 gift              = gift,
                 available_now     = available_now,
                 introduction      = introduction,
-                thumbnail_url     = thumbnail,
+                thumbnail_url     = thumbnail_url,
                 user              = login_user,
                 category          = category.first(),
                 satisfaction      = satisfaction,
                 class_level       = class_level
                 )
-        
         if age:
             product.age.add(Age.objects.get(group=age))
     
@@ -73,32 +102,26 @@ class ProductView(View):
                 name = gender,
                 product= product
                 )
-        
-        image_list = []
-        image_list.append(thumbnail)
-
-        for image in product_image:
-            image_list.append(s3_handler(image))
+        image_list = product_image.s3_handler
 
         for image in image_list:
             ProductImage.objects.create(
                 name=product_image,
                 product = product
                 )
-            image_list.append(image)
+        print(product_image)
 
-        return JsonResponse({"message" : "SUCCESS", "data" : image_list}, status=200)
+        return JsonResponse({"message" : "SUCCESS"}, status=200)
 
 
 
     @login_check
     def get(self, request):
-        user          = request.user
+        user          = request.user_id
 
         category_list = request.GET.getlist('category', None)
-        sort          = request.GET.get('sort', 'latestOrder')
-        
-
+        sort          = request.GET.get('sort', 'lastestOrder')
+            
         q = Q()
         if category_list:
             for category in category_list:
@@ -129,7 +152,7 @@ class ProductView(View):
                 
 
 class ProductDetailView(View):
-    @login_check
+    #@non_user_accept_decorator
     def get(self, request, product_id):
         product = Product.objects.get(id=product_id)
         user = request.user
@@ -155,19 +178,4 @@ class ProductDetailView(View):
 
         return JsonResponse({"product": product_info_list}, status=200)
 
-class LikeView(View):
-    @login_decorator
-    def post(self, request, product_id):
-        user = request.user
-        
-        if not Product.objects.filter(id=product_id).exists():
-            return JsonResponse({"MESSAGE":"PRODUCT_DOES_NOT_EXISTS"}, status=200)
-        
-        if not ProductUserlike.objects.filter(Q(user_id=user.id)&Q(product_id=product_id)).exists():
-            ProductUserlike.objects.create(user_id=user.id, product_id=product_id)
-        else:
-            product_user_like = ProductUserlike.objects.get(Q(user_id=user.id)&Q(product_id=product_id))
-            product_user_like.is_liked = not product_user_like.is_liked
-            product_user_like.save()
-
-        return JsonResponse({"MESSAGE":"SUCCESS"}, status=201)
+            
