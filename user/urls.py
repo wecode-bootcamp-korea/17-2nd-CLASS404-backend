@@ -1,5 +1,5 @@
 from django.urls import path
-from .views      import KakaoLoginView, MyPageView, SigninView
+from .views      import KakaoLoginView, MyPageView, SigninView, SignupView, MyPageView
 
 urlpatterns = [
     path('/signup', SignupView.as_view()),
