@@ -8,13 +8,13 @@ from django.http            import JsonResponse, HttpResponse
 
 
 
-from .models                import Brand, Category, Product, ProductUserlike, Review
+from product.models                import Brand, Category, Product, ProductUserlike, Review
 from my_settings            import s3_config
 from .settings              import AWS_STORAGE_BUCKET_NAME
 
 
 
-def s3_handler(files):
+def s3_handler(file):
     s3_client = boto3.client(
             's3',
             aws_access_key_id     = s3_config['access_key_id'],
@@ -22,7 +22,7 @@ def s3_handler(files):
     )
     
     s3_client.upload_fileobj(
-        file[0], 
+        file, 
         s3_config['bucket_name'],
         file.name,
         ExtraArgs={

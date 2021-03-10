@@ -12,6 +12,8 @@ from my_settings    import SECRET_KEY, ALGORITHM
 from user.utils     import login_decorator
 from .models        import User, UserType, UserTier
 from product.models import Brand, Category, Product, ProductUserlike, Review
+from class404.settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME
+from class404.utils import s3_handler
 
 USER_TIER_DEFAULT_ID = 1
 USER_TYPE_DEFAULT_ID = 1
@@ -164,3 +166,16 @@ class MyPageView(View):
                     "userName"    : user.name,
                     "userProfile" : user.image_url
                 }, status=200)
+
+class MyPageImageUploadView(View):
+    @login_decorator
+    def post(self, request):
+        file = request.FILES.get('fileName')
+        user = request.user
+
+        if not file:
+            return JsonResponse({"message": "IMAGE_DOES_NOT_EXIST"}, status=400)
+        
+        user.image_url = s3_handler(file)
+        user.save()
+        return JsonResponse({"file_url": user.image_url}, status=200)
