@@ -67,7 +67,7 @@ class SigninView(View):
             user = User.objects.get(email=email)
             if bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
                 token = jwt.encode({'user_id': user.id}, SECRET_KEY, ALGORITHM)
-                return JsonResponse({'message': 'SUCCESS', 'access_token': token}, status=200)
+                return JsonResponse({'message': 'SUCCESS', 'access_token': token, 'user_name':user.name, 'profileImage': user.image_url}, status=200)
             return JsonResponse({'message': 'INVALID_PASSWORD'}, status=401)
         except KeyError:
             return JsonResponse({'message': 'KEY_ERROR'}, status=400)
@@ -94,6 +94,7 @@ class KakaoLoginView(View):
                 return JsonResponse({
                     'access_token': token,
                     'user_name': name,
+                    'profileImage': user_info.image_url,
                     'message': "SUCCESS"
                     }, status=200)
                     
@@ -110,6 +111,7 @@ class KakaoLoginView(View):
             return JsonResponse({
                 'access_token': token,
                 'user_name': name,
+                'profileImage': user_info.image_url,
                 'message': "SUCCESS"
                 }, status=201)
         except KeyError:
