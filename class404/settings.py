@@ -3,7 +3,12 @@ from pathlib import Path
 import my_settings
 
 SECRET_KEY = my_settings.SECRET_KEY
-DATABASES = my_settings.DATABASES
+DATABASES  = my_settings.DATABASES
+
+AWS_ACCESS_KEY_ID       = my_settings.s3_config['access_key_id']
+AWS_SECRET_ACCESS_KEY   = my_settings.s3_config['secret_access_key']
+AWS_STORAGE_BUCKET_NAME = my_settings.s3_config['bucket_name']
+S3_BUCKET_URL           = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

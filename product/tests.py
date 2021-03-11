@@ -227,19 +227,29 @@ class ProductTest(TestCase):
         client   = Client()
         response = client.get("/product", **{"HTTP_AUTHORIZATION":self.access_token,"content_type" : "application/json"})
         print(response.json())
+
+class FileUploadTest(TestCase):
+    def test_post_one_image_success(self):
+        client  = Client()
+        test_file = './test.png'
+        with open(test_file, 'rb') as a:
+            response = client.post('/product/file', {'fileName': a})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'product': [{'id': 2, 'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', 'likeCount': 1, 'like': True, 'category': '음악', 'userName': '데이비드', 'title': '원피스', 'price': '50000.00', 'gift': False}, {'id': 1, 'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', 'likeCount': 0, 'like': False, 'category': '미술', 'userName': '이동근', 'title': '아따맘마', 'price': '50000.00', 'gift': False}]})
     
-    def test_productview_non_user_get_success(self):
+    def test_post_one_image_fail(self):
         client   = Client()
         response = client.get("/product")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'product': [{'id': 2, 'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', 'likeCount': 1, 'like': False, 'category': '음악', 'userName': '데이비드', 'title': '원피스', 'price': '50000.00', 'gift': False}, {'id': 1, 'thumbnail': 'https://images.unsplash.com/photo-1554260570-9140fd3b7614?ixid=MXwxMjA3fDB8MHxzZWFyY2h8NXx8dGh1bWJuYWlsfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', 'likeCount': 0, 'like': False, 'category': '미술', 'userName': '이동근', 'title': '아따맘마', 'price': '50000.00', 'gift': False}]})
-    
-    def test_productview_get_not_found(self):
+        self.assertEqual(response.json(), )
+
+    def test_post_one_image_not_found(self):
         client   = Client()
         response = client.get('/products')
         Review.objects.all().delete()
+        self.assertEqual(response.status_code, 400)
+
+
+    
 
     def test_productview_post_success(self):
         client = Client()

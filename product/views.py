@@ -78,11 +78,12 @@ class ProductView(View):
 
     @login_check
     def get(self, request):
-        user          = request.user_id
+        user          = request.user
 
         category_list = request.GET.getlist('category', None)
-        sort          = request.GET.get('sort', 'lastestOrder')
-            
+        sort          = request.GET.get('sort', 'latestOrder')
+        
+
         q = Q()
         if category_list:
             for category in category_list:
@@ -113,7 +114,7 @@ class ProductView(View):
                 
 
 class ProductDetailView(View):
-    #@non_user_accept_decorator
+    @login_check
     def get(self, request, product_id):
         product = Product.objects.get(id=product_id)
         user = request.user
