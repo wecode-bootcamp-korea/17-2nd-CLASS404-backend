@@ -70,10 +70,11 @@ class ProductAge(models.Model):
             
 
 class ProductUserlike(models.Model):
-    product = models.ForeignKey('Product', on_delete=models.CASCADE)
-    user    = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    product  = models.ForeignKey('Product', on_delete=models.CASCADE)
+    user     = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    is_liked = models.BooleanField(default=True)
 
-    class Mata:
+    class Meta:
         db_table = 'product_user_likes'
 
 

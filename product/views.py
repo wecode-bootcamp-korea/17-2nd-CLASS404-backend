@@ -140,4 +140,19 @@ class ProductDetailView(View):
 
         return JsonResponse({"product": product_info_list}, status=200)
 
-            
+class LikeView(View):
+    @login_decorator
+    def post(self, request, product_id):
+        user = request.user
+        
+        if not Product.objects.filter(id=product_id).exists():
+            return JsonResponse({"MESSAGE":"PRODUCT_DOES_NOT_EXISTS"}, status=200)
+        
+        if not ProductUserlike.objects.filter(Q(user_id=user.id)&Q(product_id=product_id)).exists():
+            ProductUserlike.objects.create(user_id=user.id, product_id=product_id)
+        else:
+            product_user_like = ProductUserlike.objects.get(Q(user_id=user.id)&Q(product_id=product_id))
+            product_user_like.is_liked = not product_user_like.is_liked
+            product_user_like.save()
+
+        return JsonResponse({"MESSAGE":"SUCCESS"}, status=201)
