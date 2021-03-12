@@ -124,7 +124,7 @@ class MyPageView(View):
 
         class_type = request.GET.get('class', None)
         class_dict = {
-            'like'    : Q(productuserlike__user=user),
+            'like'    : Q(Q(productuserlike__user=user)&Q(productuserlike__is_liked=True)),
             'buy'     : Q(order__user=user),
             'create'  : Q(user=user),
         }
@@ -180,4 +180,5 @@ class MyPageImageUploadView(View):
         
         user.image_url = s3_handler(file)
         user.save()
+
         return JsonResponse({"file_url": user.image_url}, status=200)

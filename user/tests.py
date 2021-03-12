@@ -5,6 +5,7 @@ import bcrypt
 from django.test   import TestCase, Client
 from unittest.mock import patch, MagicMock
 from requests.auth import HTTPBasicAuth
+from django.core.files import File
 
 from product.models  import (
     Brand,
@@ -520,7 +521,7 @@ class SigninTest(TestCase):
             'email'    : 'dlwnsgk7910@naver.com',
             'password' : 'dlwnsgk1234'
         }
-        response = client.post('/user/signin', json.dumps(user), content_type='application/json')
+        response = client.post('/user/signin', json.dumps(user), content_type='apMockplication/json')
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json(),
@@ -543,3 +544,53 @@ class SigninTest(TestCase):
                 'message' : 'KEY_ERROR'
             }
         )
+
+class MyPageImageUploadTest(TestCase):
+
+    def setUp(self):
+        UserTier.objects.create(id=1, name='브론즈')
+        UserType.objects.create(id=1, name='일반')
+        User.objects.create(
+                id           =  1,
+                social_login = '67890',
+                name         = '박재현',
+                email        = 'namujinju@gamil.com',
+                tier_id      =  USER_TIER_DEFAULT_ID,
+                user_type_id =  USER_TYPE_DEFAULT_ID
+                )
+        self.access_token = jwt.encode({'user_id' : User.objects.get(id=1).id},\
+                SECRET_KEY, ALGORITHM)
+
+    def tearDown(self):
+        User.objects.all().delete()
+        UserTier.objects.all().delete()
+        UserType.objects.all().delete()
+
+    @patch('class404.utils.boto3.client')
+    def test_post_image_success(self, mock_s3client):
+        client  = Client()
+        mock_file = MagicMock(spec=File)
+        mock_file.name = 'test.png'
+        mock_s3client.upload_fileobj = MagicMock()
+
+        response = client.post('/user/mypage/image', {'fileName': mock_file}, **{"HTTP_AUTHORIZATION":self.access_token})
+        self.assertEqual(response.status_code, 200)
+    
+    @patch('class404.utils.boto3.client')
+    def test_post_no_image_fail(self, mock_s3client):
+        client  = Client()
+        mock_s3client.upload_fileobj = MagicMock()
+
+        response = client.post('/user/mypage/image', **{"HTTP_AUTHORIZATION":self.access_token})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {"message": "IMAGE_DOES_NOT_EXIST"})
+
+    @patch('class404.utils.boto3.client')
+    def test_post_key_error_fail(self, mock_s3client):
+        client  = Client()
+        mock_file = MagicMock(spec=File)
+        mock_file.name = 'test.png'
+        mock_s3client.upload_fileobj = MagicMock()
+
+        response = client.post('/user/mypage/image', {'fileNames': mock_file}, **{"HTTP_AUTHORIZATION":self.access_token})
+        self.assertEqual(response.status_code, 400)
