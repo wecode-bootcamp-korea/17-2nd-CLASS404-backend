@@ -1,5 +1,4 @@
 from django.urls   import path
-<<<<<<< HEAD
 from product.views import ProductView, ProductDetailView, LikeView
 
 urlpatterns = [

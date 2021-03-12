@@ -32,7 +32,6 @@ class ProductView(View):
         data              = request.POST
         image             = request.FILES
         login_user        = request.user
-        
         brand             = data['brand']
         category          = data['category']
         title             = data['title']
@@ -117,13 +116,14 @@ class ProductView(View):
         product_info_list = [{
             "id"          : product.id,
             "thumbnail"   : product.thumbnail_url,
-            "likeCount"   : ProductUserlike.objects.filter(product_id=product.id).count(), 
-            "like"        : ProductUserlike.objects.filter(user_id=user.id, product_id=product.id).exists() if user else False,
+            "likeCount"   : ProductUserlike.objects.filter(product_id=product.id, is_liked=True).count(), 
+            "like"        : ProductUserlike.objects.filter(user_id=user.id, product_id=product.id, is_liked=True).exists() if user else False,
             "category"    : product.category.name,
             "userName"    : product.user.name,
             "title"       : product.title,
             "price"       : product.price,
-	    "gift"        : product.gift,
+	        "gift"        : product.gift,
+            "reviewNumber": Review.objects.filter(product_id=product.id).all().count(),
         } for product in products]
         return JsonResponse({"product": product_info_list}, status=200)
                 
@@ -133,11 +133,11 @@ class ProductDetailView(View):
     def get(self, request, product_id):
         product = Product.objects.get(id=product_id)
         user = request.user
-        like     = ProductUserlike.objects.filter(user_id=user.id, product_id=product.id).exists() if user else False
+        like     = ProductUserlike.objects.filter(user_id=user.id, product_id=product.id, is_liked=True).exists() if user else False
         product_info_list = [{
             "id"          : product.id,
             "thumbnail"   : product.thumbnail_url,
-            "likeCount"   : ProductUserlike.objects.filter(product_id=product.id).count(),
+            "likeCount"   : ProductUserlike.objects.filter(product_id=product.id, is_liked=True).count(),
             "like"        : like,
             "category"    : product.category.name,
             "creatorName" : product.user.name,
@@ -146,6 +146,7 @@ class ProductDetailView(View):
 	    "gift"        : product.gift,
             "description" : product.description,
             "introduction": product.introduction,
+            "reviewNumber": Review.objects.filter(product_id=product_id).all().count(),
             "reviews"     : [{ 
                 "id"      : review.id,
                 "author"  : review.user.name,
@@ -170,4 +171,4 @@ class LikeView(View):
             product_user_like.is_liked = not product_user_like.is_liked
             product_user_like.save()
 
-        return JsonResponse({"MESSAGE":"SUCCESS"}, status=201)
+        return JsonResponse({"MESSAGE":"SUCCESS"}, status=200)
